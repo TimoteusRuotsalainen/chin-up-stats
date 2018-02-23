@@ -1,0 +1,58 @@
+<html>
+<head>
+	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	</head>
+  <body>
+    <form method="POST" action="/competitors">
+      <input type="text" name="name">
+      <input type="submit" value="Add">
+    </form>
+
+  <div class="wrapper">
+  <h1>Competitors</h1>
+  <table class="competitors">
+  	<tr>
+  	<th>Name</th>
+  	<th>Weight</th>
+  	<th>Record</th>
+  	<!--<th>Weight class</th>-->
+  	<th>Order</th>
+  	<th>#1 kg</th>
+  	<th>#1</th>
+  	<th>#2 kg</th>
+  	<th>#3 kg</th>
+  	<th>#4 kg</th>
+  	</tr>
+    {% for competitor in competitors %}
+
+	    <tr class="competitor">
+	        <form method="POST" action="/competitors/update">
+		    	<input type="hidden" value="{{competitor.id}}" name="id">
+				<td><input type="text" value="{{competitor.name}}" name="newname"></td>
+				<td><input class="number-box" type="text" value="{{competitor.weight}}" name="weight"></td>
+				<td><input class="number-box" type="text" value="{{competitor.record}}" name="record"></td>
+<!--				<td><input type="text" value="{{competitor.weightclass}}" name="weightclass"></td>-->
+				<td><input class="number-box" type="text" value="{{competitor.order}}" name="order"></td>
+				<td><input class="number-box" type="text" value="{{competitor.attempt1_weight}}" name="attempt1_weight"></td>
+				<td><input type="checkbox" value="{{competitor.attempt1_result}}"></td>
+				<td><input class="number-box" type="text" value="{{competitor.attempt2_weight}}" name="attempt2_weight"></td>
+				<td><input class="number-box" type="text" value="{{competitor.attempt3_weight}}" name="attempt3_weight"></td>
+				<td><input class="number-box" type="text" value="{{competitor.attempt4_weight}}" name="attempt4_weight"></td>
+			 	<td><input type="submit" value="Update"></td>
+			</form>
+
+  			<form method="POST" action="./delete">
+	  			<input type="hidden" value="{{competitor.id}}" name="id">
+	  			<td><input type="submit" value="Delete"></td>
+			</form>
+
+  			<form method="POST" action="/competitors/current">
+	  			<input type="hidden" value="{{competitor.id}}" name="id">
+	  			<td><input type="submit" value="Current"></td>
+			</form>
+		</tr>
+    {% endfor %}
+</table></div>
+
+  </body>
+</html>

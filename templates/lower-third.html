@@ -1,0 +1,132 @@
+<html>
+<head>
+	<script>
+		function play() {
+			fetch('http://localhost:5000/competitors/current').then(function(response) {
+  				response.json().then(function(data) {
+        			document.querySelector('.name').innerText = data['name'];
+        			document.querySelector('.record').innerText = data['record'];
+        			document.querySelector('.weight').innerText = data['weight'];
+
+        			document.querySelector('.first').innerText = data['attempt1_weight'];
+
+        			if (data['attempt1_weight'] > data['record']) {
+        				document.querySelector('.first').className += " star";
+        			}
+        			if (data['attempt1_result'] != null) {
+	        			if (data['attempt1_result']) {
+	        				document.querySelector('.first').className += " pass";
+	        			} else {
+	        				document.querySelector('.first').className += " fail";
+	        			}
+	        		}
+        			document.querySelector('.second').innerText = data['attempt2_weight'];
+        			document.querySelector('.third').innerText = data['attempt3_weight'];
+        			document.querySelector('.fourth').innerText = data['attempt4_weight'];
+
+      			});
+
+			});
+		}
+		play()
+	</script>
+	<style>
+		.lower-third {
+			background: #252B6A;
+		    width: 400px;
+		    height: 100px;
+		    position: absolute;
+		    bottom: 10px;
+		    left: 10px;
+		    border-radius: 10px 10px 0 0;
+		}
+
+		div {
+			color: #FFF;
+		    font-family: sans-serif;
+		    font-weight: 600;
+		}
+
+		.name, .record, .weight  {
+		    position: absolute;
+		}
+
+		.name {
+			top:10px;
+			left:10px;
+		}
+
+		.record {
+		    top: 10px;
+		    right: 10px;	
+		}
+
+		.weight {
+			top:30px;
+			left:10px;
+
+		}
+
+		.attempt {
+			border: 1px solid #FFF;
+    		width: 33px;
+    		height: auto;
+    		text-align: center;
+    		position: absolute;
+			width: 50px;
+    		line-height: 27px;
+    		height: 25px;
+		}
+
+		.first {
+			top:60px;
+			left:100px;
+		}
+
+		.second {
+			top:60px;
+			left:160px;
+		}
+
+		.third {
+			top:60px;
+			left:220px;
+		}
+
+		.fourth {
+			top:60px;
+			left:280px;
+			display:none;
+		}				
+
+		.pass {
+			background: #BAD62E;
+		}
+
+		.fail {
+			background: red;
+		}
+		
+		.star:after {
+    		content: '\2605';
+    		font-size: 30px;
+    		color: orange;
+    		position: absolute;
+    		bottom: 31px;
+    		left: 9;
+		}	
+
+	</style>
+</head>
+<body>
+	<div class="lower-third">
+	<div class="name"></div>
+	<div class="record"></div>
+	<div class="weight"></div>
+	<div class="attempt first" ></div>
+	<div class="attempt second" ></div>
+	<div class="attempt third"></div>
+	<div class="attempt fourth" ></div>
+	<div>
+</body>
+</html>

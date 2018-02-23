@@ -1,0 +1,14 @@
+.wrapper {
+	position:absolute;
+	top:100px;
+}
+
+.number-box {
+    width: 45px;
+    text-align: center;
+}
+
+td {
+    text-align: center;
+    vertical-align: middle;
+}
