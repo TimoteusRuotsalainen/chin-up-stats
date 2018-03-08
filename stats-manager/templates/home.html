@@ -1,6 +1,66 @@
 <html>
 <head>
-	<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+	<link rel= "stylesheet" type= "text/css" href="{{ url_for('static',filename='style.css') }}">
+	<script defer src="{{ url_for('static',filename='js/fontawesome-all.min.js') }}"></script>
+	<script>
+		document.addEventListener('change', function(event) {
+  			var data = {};
+  			values = document.querySelectorAll('.' + event.path[4].classList[1] + ' input');
+  			console.log(values, '.' + event.path[5].classList[1] + ' input');
+			for (var y = 0; y < values.length; y += 1) {
+				data[values[y].name] = values[y].value.replace(',', '.');
+			}
+			console.log(event)
+			data['attempt1_result'] = document.querySelectorAll('.' + event.path[4].classList[1] +' input[name="attempt1_result"]:checked')[0].value;
+			data['attempt2_result'] = document.querySelectorAll('.' + event.path[4].classList[1] +' input[name="attempt2_result"]:checked')[0].value;
+			data['attempt3_result'] = document.querySelectorAll('.' + event.path[4].classList[1] +' input[name="attempt3_result"]:checked')[0].value;
+			data['attempt4_result'] = document.querySelectorAll('.' + event.path[4].classList[1] +' input[name="attempt4_result"]:checked')[0].value;
+
+  			postData(data, 'http://localhost:4000/competitors/update');
+
+  			if (data['attempt1_result'] == 0) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt1_weight"]').style.backgroundColor = 'red';
+  			} else if (data['attempt1_result'] == 1) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt1_weight"]').style.backgroundColor = 'green';
+  			} else {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt1_weight"]').style.backgroundColor = 'white';
+  			}
+
+
+  			if (data['attempt2_result'] == 0) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt2_weight"]').style.backgroundColor = 'red';
+  			} else if (data['attempt2_result'] == 1) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt2_weight"]').style.backgroundColor = 'green';
+  			} else {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt2_weight"]').style.backgroundColor = 'white';
+  			}
+
+  			if (data['attempt3_result'] == 0) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt3_weight"]').style.backgroundColor = 'red';
+  			} else if (data['attempt3_result'] == 1) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt3_weight"]').style.backgroundColor = 'green';
+  			} else {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt3_weight"]').style.backgroundColor = 'white';
+  			}
+
+   			if (data['attempt4_result'] == 0) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt4_weight"]').style.backgroundColor = 'red';
+  			} else if (data['attempt4_result'] == 1) {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt4_weight"]').style.backgroundColor = 'green';
+  			} else {
+  				document.querySelector('.' + event.path[4].classList[1] +' input[name="attempt4_weight"]').style.backgroundColor = 'white';
+  			}
+
+		});
+
+
+		function postData(data, url) {
+			x = new XMLHttpRequest();
+			x.open("POST", url);
+			x.setRequestHeader('Content-Type', 'application/json');
+			x.send(JSON.stringify(data), requestHeaders={'Content-Type': 'application/json'});
+		}
+	</script>
 	</head>
   <body>
     <form method="POST" action="/competitors">
@@ -8,51 +68,174 @@
       <input type="submit" value="Add">
     </form>
 
+  			<form method="POST" action="/lowerthird/play">
+	  			<div><input type="submit" value="Play"></div>
+			</form>
+
+			  			<form method="POST" action="/lowerthird/stop">
+	  			<div><input type="submit" value="Stop"></div>
+			</form>
+
   <div class="wrapper">
   <h1>Competitors</h1>
-  <table class="competitors">
-  	<tr>
-  	<th>Name</th>
-  	<th>Weight</th>
-  	<th>Record</th>
-  	<!--<th>Weight class</th>-->
-  	<th>Order</th>
-  	<th>#1 kg</th>
-  	<th>#1</th>
-  	<th>#2 kg</th>
-  	<th>#3 kg</th>
-  	<th>#4 kg</th>
-  	</tr>
+  <div class="competitors">
     {% for competitor in competitors %}
 
-	    <tr class="competitor">
-	        <form method="POST" action="/competitors/update">
+	    <div class="competitor c{{competitor.id}}" id="{{'current' if competitor.id == current.competitor.id }}">
+	        <form autocomplete="off" method="POST" action="/competitors/update">
 		    	<input type="hidden" value="{{competitor.id}}" name="id">
-				<td><input type="text" value="{{competitor.name}}" name="newname"></td>
-				<td><input class="number-box" type="text" value="{{competitor.weight}}" name="weight"></td>
-				<td><input class="number-box" type="text" value="{{competitor.record}}" name="record"></td>
-<!--				<td><input type="text" value="{{competitor.weightclass}}" name="weightclass"></td>-->
-				<td><input class="number-box" type="text" value="{{competitor.order}}" name="order"></td>
-				<td><input class="number-box" type="text" value="{{competitor.attempt1_weight}}" name="attempt1_weight"></td>
-				<td><input type="checkbox" value="{{competitor.attempt1_result}}"></td>
-				<td><input class="number-box" type="text" value="{{competitor.attempt2_weight}}" name="attempt2_weight"></td>
-				<td><input class="number-box" type="text" value="{{competitor.attempt3_weight}}" name="attempt3_weight"></td>
-				<td><input class="number-box" type="text" value="{{competitor.attempt4_weight}}" name="attempt4_weight"></td>
-			 	<td><input type="submit" value="Update"></td>
+				<div>
+					<label>
+						<input type="text" value="{{competitor.name}}" name="newname">
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input class="number-box" type="text" value="{{competitor.weight}}" name="weight">
+						<div class="fa fa-balance-scale orange" ></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input class="number-box" type="text" value="{{competitor.record}}" name="record">
+						<div class="fa fa-star orange" /></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input class="number-box" type="text" value="{{competitor.order}}" name="order">
+						<div class="fa fa-sort orange" ></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input class="number-box {{'fail_bg' if competitor.attempt1_result == 0}} {{'pass_bg' if competitor.attempt1_result == 1}}" type="text" value="{{competitor.attempt1_weight}}" name="attempt1_weight">
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input type="radio" name="attempt1_result" value="1">
+						<div class="fa fa-flag pass"></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input type="radio" name="attempt1_result" value="0">
+						<div class="fa fa-flag fail"></div>
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input type="radio" name="attempt1_result" value="2">
+						<div class="fa fa-ban no-attempt"></div>
+					</label>
+				</div>
+
+				<div><label><input class="number-box {{'fail_bg' if competitor.attempt2_result == 0}} {{'pass_bg' if competitor.attempt2_result == 1}}" type="text" value="{{competitor.attempt2_weight}}" name="attempt2_weight"></label></div>
+				<div>
+					<label>
+						<input type="radio" name="attempt2_result" value=1>
+						<div class="fa fa-flag pass"></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input type="radio" name="attempt2_result" value=0>
+						<div class="fa fa-flag fail"></div>
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input type="radio" name="attempt2_result" value=2>
+						<div class="fa fa-ban no-attempt"></div>
+					</label>
+				</div>
+				<div><label><input class="number-box {{'fail_bg' if competitor.attempt3_result == 0}} {{'pass_bg' if competitor.attempt3_result == 1}}" type="text" value="{{competitor.attempt3_weight}}" name="attempt3_weight"></label></div>
+				<div>
+					<label>
+						<input type="radio" name="attempt3_result" value="1">
+						<div class="fa fa-flag pass"></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input type="radio" name="attempt3_result" value="0">
+						<div class="fa fa-flag fail"></div>
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input type="radio" name="attempt3_result" value="2">
+						<div class="fa fa-ban no-attempt"></div>
+					</label>
+				</div>
+				<div><label><input class="number-box {{'fail_bg' if competitor.attempt4_result == 0}} {{'pass_bg' if competitor.attempt4_result == 1}}" type="text" value="{{competitor.attempt4_weight}}" name="attempt4_weight"></label></div>
+				<div>
+					<label>
+						<input type="radio" name="attempt4_result" value="1">
+						<div class="fa fa-flag pass"></div>
+					</label>
+				</div>
+				
+				<div>
+					<label>
+						<input type="radio" name="attempt4_result" value="0">
+						<div class="fa fa-flag fail"></div>
+					</label>
+				</div>
+
+				<div>
+					<label>
+						<input type="radio" name="attempt4_result" value="2">
+						<div class="fa fa-ban no-attempt"></div>
+					</label>
+				</div>
 			</form>
+
+			<script>
+				function setResult(competitor_id, attempt, value) {
+					if (value == 1) {
+						document.querySelectorAll(".competitor.c" + competitor_id + " input[name=" + attempt + "]")[0].checked = true;
+					} else if (value == 0) {
+						document.querySelectorAll(".competitor.c" + competitor_id + " input[name=" + attempt + "]")[1].checked = true;
+					} else {
+						document.querySelectorAll(".competitor.c" + competitor_id + " input[name=" + attempt + "]")[2].checked = true;
+					}
+				}
+				setResult({{competitor.id}}, 'attempt1_result', {{competitor.attempt1_result}} );
+				setResult({{competitor.id}}, 'attempt2_result', {{competitor.attempt2_result}} );
+				setResult({{competitor.id}}, 'attempt3_result', {{competitor.attempt3_result}} );
+				setResult({{competitor.id}}, 'attempt4_result', {{competitor.attempt4_result}} );
+			</script>
 
   			<form method="POST" action="./delete">
 	  			<input type="hidden" value="{{competitor.id}}" name="id">
-	  			<td><input type="submit" value="Delete"></td>
+	  			<div><input type="submit" value="Delete"></div>
 			</form>
 
   			<form method="POST" action="/competitors/current">
 	  			<input type="hidden" value="{{competitor.id}}" name="id">
-	  			<td><input type="submit" value="Current"></td>
+	  			<div><input type="submit" value="Current"></div>
 			</form>
-		</tr>
+
+			  <form method="POST" action="/competitors/next">
+	  			<input type="hidden" value="{{competitor.id}}" name="id">
+	  			<div><input type="submit" value="Next"></div>
+			</form>
+		</div>
     {% endfor %}
-</table></div>
+</div></div>
 
   </body>
 </html>

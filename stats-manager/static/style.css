@@ -12,3 +12,81 @@ td {
     text-align: center;
     vertical-align: middle;
 }
+
+div {
+	display: inline-block;
+}
+
+.competitors {
+
+}
+
+.competitor {
+	background: #e5e5eb;
+    height: 40px;
+    opacity:0.8;
+    width: 850px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    position: relative;
+}
+
+input[value="Delete"] {
+	position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+input[value="Current"] {
+	position: absolute;
+    right: 10px;
+    top: 30px;
+}
+
+
+#current {
+	background:#161B4E;
+    opacity: 1;
+    height: 70px;
+}
+
+input[type="radio"] {
+    display: none;
+}
+
+input[type="text"] {
+	margin-top: 10px;
+}
+
+.orange {
+	color: orange;
+}
+
+.pass {
+	color: white;
+	filter: drop-shadow( 0px 1px 1px #666 );
+}
+
+.pass_bg {
+	color: #FFF;
+	background: green;
+}
+
+.fail {
+	color: red;
+	filter: drop-shadow( 0px 1px 1px #666 );
+}
+
+.fail_bg {
+	color: #FFF;
+	background:red;
+
+}
+
+.no-attempt {
+	color: grey;
+}
+
+body {
+	background: #fffaf0;
+}

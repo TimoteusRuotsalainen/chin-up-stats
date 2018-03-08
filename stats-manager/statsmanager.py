@@ -10,6 +10,9 @@ from flask_cors import CORS
 
 from flask_sqlalchemy import SQLAlchemy
 
+import telnetlib
+import socket
+
 project_dir = os.path.dirname(os.path.abspath(__file__))
 database_file = "sqlite:///{}".format(os.path.join(project_dir, "statsmanager.db"))
 
@@ -21,33 +24,37 @@ CORS(app)
 
 db = SQLAlchemy(app)
 
+try:
+    tn = telnetlib.Telnet('192.168.1.203', 5250, 10)
+except OSError as e:
+    print(e)
+
 
 class Competitor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    # add many to many
+
     name = db.Column(db.String(80), nullable=False)
-    record = db.Column(db.Float)
-    weight = db.Column(db.Float)
+    record = db.Column(db.Float, default=0)
+    weight = db.Column(db.Float, default=0)
     weightclass_id = db.Column(db.Integer, db.ForeignKey('weight_class.id'), nullable=True)
     weightclass = db.relationship("WeightClass")
-    order = db.Column(db.Integer)
-    attempt1_weight = db.Column(db.Float)
-    attempt1_result = db.Column(db.Boolean, nullable=True)
+    order = db.Column(db.Integer, default=0)
+    attempt1_weight = db.Column(db.Float, default=0)
+    attempt1_result = db.Column(db.Integer, nullable=True, default=2)       # 0 = fail, 1 = pass, 2 = no attempt
 
-    attempt2_weight = db.Column(db.Float)
-    attempt2_result = db.Column(db.Boolean, nullable=True)
+    attempt2_weight = db.Column(db.Float, default=0)
+    attempt2_result = db.Column(db.Integer, nullable=True, default=2)
     
-    attempt3_weight = db.Column(db.Float)
-    attempt3_result = db.Column(db.Boolean, nullable=True)
+    attempt3_weight = db.Column(db.Float, default=0)
+    attempt3_result = db.Column(db.Integer, nullable=True, default=2)
     
-    attempt4_weight = db.Column(db.Float)
-    attempt4_result = db.Column(db.Boolean, nullable=True)
+    attempt4_weight = db.Column(db.Float, default=0)
+    attempt4_result = db.Column(db.Integer, nullable=True, default=2)
 
 
 class WeightClass(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    max_weight = db.Column(db.Float)
     record = db.Column(db.Float)
     group = db.Column(db.Integer)
     order = db.Column(db.Integer)
@@ -61,29 +68,38 @@ class Current(db.Model):
     competitor = db.relationship(Competitor)
 
 
+def get_or_default(dict, key, default):
+    try:
+        return dict[key]
+    except KeyError as e:
+        return default
+
+
 @app.route("/competitors/update", methods=["POST"])
 def update():
     try:
-        print(request.form.get("attempt1_result"))
-        newname = request.form.get("newname")
-        id = request.form.get("id")
-        competitor = Competitor.query.get(id)
-        competitor.name = newname
-        competitor.record = request.form.get("record")
-        competitor.weight = request.form.get("weight")
-        competitor.order = request.form.get("order")
-        competitor.attempt1_weight = request.form.get("attempt1_weight")
-        competitor.attempt1_result = request.form.get("attempt1_result")
-        competitor.attempt2_weight = request.form.get("attempt2_weight")
-        competitor.attempt2_result = request.form.get("attempt2_result")
-        competitor.attempt3_weight = request.form.get("attempt3_weight")
-        competitor.attempt3_result = request.form.get("attempt3_result")
-        competitor.attempt4_weight = request.form.get("attempt4_weight")
-        competitor.attempt4_result = request.form.get("attempt4_result")
+        data = request.json
+        competitor = Competitor.query.get(data['id'])
+        competitor.name = get_or_default(data, 'newname', "Unnamed competitor")
+        competitor.record = get_or_default(data, 'record', 0)
+        competitor.weight = get_or_default(data, 'weight', 0)
+        competitor.order = get_or_default(data, 'order', 0)
+        competitor.attempt1_weight = get_or_default(data, 'attempt1_weight', 0)
+        competitor.attempt1_result = get_or_default(data, 'attempt1_result', 2)
+
+        competitor.attempt2_weight = get_or_default(data, 'attempt2_weight', 0)
+        competitor.attempt2_result = get_or_default(data, 'attempt2_result', 2)
+
+        competitor.attempt3_weight = get_or_default(data, 'attempt3_weight', 0)
+        competitor.attempt3_result = get_or_default(data, 'attempt3_result', 2)
+
+        competitor.attempt4_weight = get_or_default(data, 'attempt4_weight', 0)
+        competitor.attempt4_result = get_or_default(data, 'attempt4_result', 2)
+
         db.session.commit()
     except Exception as e:
         print('Could not update competitor', e)
-    return redirect("/")
+    return redirect("/#current")
 
 
 @app.route("/delete", methods=["POST"])
@@ -94,6 +110,28 @@ def delete():
     db.session.commit()
     return redirect("/")
 
+
+@app.route("/lowerthird/play", methods=["POST"])
+def lowerthird_play():
+    try:
+        tn.write('CG 1-12 ADD 1 "chinup/LOWER-THIRD" 1'.encode('utf8') + b"\r\n")
+    except NameError as e:
+        print('Connection timed out')
+        return redirect("/?error=1")
+    else:
+        return redirect("/")
+
+
+@app.route("/lowerthird/stop", methods=["POST"])
+def lowerthird_stop():
+    try:
+        tn.write('CG 1-12 STOP 1'.encode('utf8') + b"\r\n")
+    except NameError as e:
+        print('Connection timed out')
+        return redirect("/?error=1")
+    else:
+        return redirect("/")
+
 # Show current competitor /current/show ?? is get ok?
 # Hide current competitor /current/hide ?? is get ok?
 # Set current competitor POST /current
@@ -102,6 +140,21 @@ def delete():
 # Get competitor list in correct order /competition
 
 # update Competitor (weight, record, attempt1-4)
+
+
+@app.route("/competitors/next", methods=["POST"])
+def next():
+    if request.form:
+        current = Current.query.first()
+        next = Competitor.query.filter_by(order=current.competitor.order+1).first()
+        try:
+            current.competitor_id = next.id
+            db.session.commit()
+        except AttributeError as e:
+            print('already at the end of the list', e)
+        finally:
+            return redirect("/#current")
+
 
 
 @app.route("/competitors/current", methods=["GET", "POST"])
@@ -116,10 +169,10 @@ def current():
             db.session.add(current)
             db.session.commit()
         finally:
-            return redirect("/")
+            return redirect("/#current")
 
     current = Current.query.first()
-    return jsonify(name=current.competitor.name, 
+    return jsonify(name=current.competitor.name,
                    weight=current.competitor.weight,
                    record=current.competitor.record,
                    attempt1_weight=current.competitor.attempt1_weight,
@@ -141,6 +194,13 @@ def competitors():
             db.session.commit()
         except Exception as e:
             print('Failed to add competitor')
+
+        current = Current.query.first()
+        if current is None:
+            current = Current(competitor_id=competitor.id)
+            db.session.add(current)
+            db.session.commit()
+
     return redirect("/")
 
 
@@ -149,8 +209,9 @@ def home():
     competitors = None
 
     competitors = Competitor.query.order_by(Competitor.order).all()
-    weight_classes = WeightClass.query.all()
-    return render_template("home.html", competitors=competitors, weight_classes=weight_classes) 
+    current = Current.query.first()
+
+    return render_template("home.html", competitors=competitors, current=current)
 
 if __name__ == "__main__":
     app.run(debug=True)
